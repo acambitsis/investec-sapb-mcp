@@ -122,12 +122,3 @@ We welcome contributions to the `investec-sapb-mcp` project. To contribute, foll
 4. **Submit a pull request**:
    Push your changes to your fork and submit a pull request to the main repository with a clear description of your changes.
 
----
-
-## License
-
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
-
----
-
-This `README.md` should provide everything you need to get started with the `investec-sapb-mcp` project. Let me know if you'd like me to adjust or add anything!
