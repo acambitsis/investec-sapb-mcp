@@ -1,252 +1,133 @@
-# Investec API Python Client
+# Investec SAPB MCP Server
 
-A high-quality, typed Python wrapper for the Investec Open Banking API.
+## Overview
 
-## Features
+The `investec-sapb-mcp` project is a Python-based MCP (Model Context Protocol) server designed to interact with the [Investec SA private banking API](https://developer.investec.com/za/api-products/documentation/SA_PB_Account_Information). This server allows AI applications to perform actions against the Investec API—such as managing accounts, transactions, and beneficiary payments—using a standardized interface. By leveraging MCP, the project enables seamless integration between LLM Client that support MCP and the Investec API without the need for custom code for each integration.
 
-- Full support for all Investec API endpoints
-- Type hints throughout for better code completion and error prevention
-- Clean, consistent API for easy integration
-- Proper error handling with custom exceptions
-- Handles authentication transparently
-- Model Context Protocol (MCP) server for integration with AI assistants
+### What is MCP?
+Model Context Protocol (MCP) is an open standard introduced by Anthropic in late 2024 that standardizes how AI applications connect with external tools, data sources, and systems. Often described as a "USB-C port for AI applications," MCP creates a universal interface allowing any AI assistant to plug into any data source or service without requiring custom code for each integration.
+
+MCP solves the integration complexity problem by transforming what was previously an "M×N problem" (requiring custom integrations between M AI applications and N tools/systems) into a simpler "M+N problem" through standardization. This significantly reduces development time and maintenance requirements.
+
+---
+
+## Installation
+
+To set up the `investec-sapb-mcp` project, follow these steps:
+
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/acambitsis/investec-sapb-mcp.git
+   cd investec-sapb-mcp
+   ```
+
+2. **Install `uv` for package management**:
+   `uv` is used for managing Python packages in this project. Follow the installation guide [here](https://docs.astral.sh/uv/getting-started/installation/) to set up `uv` on your system.
+
+3. **Create and activate a virtual environment**:
+   ```bash
+   uv venv .venv
+   source .venv/bin/activate  # On Unix/macOS
+   # OR
+   .venv\Scripts\activate     # On Windows
+   ```
+
+4. **Install dependencies**:
+   Use `uv` to install the required packages:
+   ```bash
+   uv sync
+   ```
+
+5. **Set up environment variables**:
+   Create a `.env` file in the root directory and add the following variables:
+   ```
+   INVESTEC_CLIENT_ID=your_client_id
+   INVESTEC_CLIENT_SECRET=your_client_secret
+   INVESTEC_API_KEY=your_api_key
+   INVESTEC_USE_SANDBOX=true  # Set to false for production
+   INVESTEC_TIMEOUT=30
+   ```
+   Replace `your_client_id`, `your_client_secret`, and `your_api_key` with your actual Investec API credentials.
+
+   **⚠️ Security Warning**: Never hardcode API keys, client IDs, or secrets in the code. Always use environment variables or a secure vault.
+
+---
 
 ## Usage
 
-### Setup
+To use the `investec-sapb-mcp` server, follow these steps:
 
-1. Clone the repository
-2. Set up your environment variables (see `.env.example`)
-3. Use the client directly in your code
+1. **Start the MCP server**:
+   Test that the server runs with following command:
+   ```bash
+   uv run server.py
+   ```
 
-### Authentication
+2. **Connect via an MCP-compatible AI application**:
+   Use an AI application that supports MCP (e.g., Claude Desktop or 5ire) to connect to the server. The AI can then use the exposed tools to interact with the Investec API.
 
-```python
-from investec_api import InvestecClient
+3. **Available Tools**:
+   The server exposes several tools for interacting with the Investec API:
+   - **`get_accounts`**: Retrieve all accounts for the authenticated user.
+   - **`transfer_multiple`**: Transfer funds to one or multiple accounts.
+   - **`pay_beneficiaries`**: Pay one or multiple beneficiaries.
 
-# Initialize the client
-client = InvestecClient(
-    client_id="your_client_id",
-    client_secret="your_client_secret",
-    api_key="your_api_key",
-    use_sandbox=True,  # Set to False for production
-)
+   For detailed usage of each tool, refer to the docstrings in `server.py`.
+
+### Example Usage
+Here's an example of how an AI might use the `get_accounts` tool:
+```markdown
+**User Query**: "List all my accounts."
+
+**AI Response**: "Here are your accounts:
+- Account Name: Savings Account, Account Number: 123456789, Balance: 5000.00 ZAR
+- Account Name: Cheque Account, Account Number: 987654321, Balance: 1500.00 ZAR"
 ```
 
-### Get Accounts
+---
 
-```python
-# Get all accounts
-accounts = client.get_accounts()
+## Testing
 
-# Print account information
-for account in accounts:
-    print(f"Account ID: {account.account_id}")
-    print(f"Name: {account.account_name}")
-    print(f"Type: {account.product_name}")
-    print("---")
+To run the tests for this project, follow these steps:
 
-    # Get account balance
-    balance = client.get_account_balance(account.account_id)
-    print(f"Current balance: {balance.current_balance} {balance.currency}")
-    print(f"Available balance: {balance.available_balance} {balance.currency}")
-```
+1. **Install test dependencies**:
+   ```bash
+   uv add pytest
+   ```
 
-### Get Transactions
+2. **Run tests**:
+   ```bash
+   pytest tests/
+   ```
 
-```python
-from datetime import date, timedelta
+   The tests use the sandbox environment by default. Ensure your `.env` file is configured correctly for testing.
 
-# Date range for transactions (last 30 days)
-from_date = date.today() - timedelta(days=30)
-to_date = date.today()
+---
 
-# Get transactions for an account
-transactions = client.get_account_transactions(
-    account_id="account_id_here",
-    from_date=from_date,
-    to_date=to_date,
-    include_pending=True
-)
+## Contributing
 
-for txn in transactions:
-    txn_type = "DEBIT" if txn.type.value == "DEBIT" else "CREDIT"
-    print(f"{txn.transaction_date}: {txn_type} {txn.amount} - {txn.description}")
-```
+We welcome contributions to the `investec-sapb-mcp` project. To contribute, follow these steps:
 
-### Transfer Funds
+1. **Fork the repository**:
+   Click the "Fork" button on the GitHub repository page.
 
-```python
-from investec_api.models import TransferItem
-from decimal import Decimal
+2. **Create a feature branch**:
+   ```bash
+   git checkout -b feature/your-improvement
+   ```
 
-# Create transfer items
-transfers = [
-    TransferItem(
-        beneficiary_account_id="beneficiary_account_id_here",
-        amount=Decimal("100.00"),
-        my_reference="Payment reference",
-        their_reference="Their reference"
-    )
-]
+3. **Make your changes**:
+   Implement your feature or bug fix, ensuring to follow the project's coding standards.
 
-# Execute transfer
-result = client.transfer_multiple(
-    account_id="source_account_id_here",
-    transfers=transfers
-)
+4. **Submit a pull request**:
+   Push your changes to your fork and submit a pull request to the main repository with a clear description of your changes.
 
-# Check results
-for response in result.transfer_responses:
-    print(f"Transfer reference: {response.payment_reference_number}")
-    print(f"Status: {response.status}")
-    print(f"Authorization required: {response.authorisation_required}")
-```
-
-### Pay Beneficiaries
-
-```python
-from investec_api.models import BeneficiaryPaymentItem
-from decimal import Decimal
-
-# First get all beneficiaries
-beneficiaries = client.get_beneficiaries()
-
-# Create payment items
-payments = [
-    BeneficiaryPaymentItem(
-        beneficiary_id=beneficiaries[0].beneficiary_id,
-        amount=Decimal("250.00"),
-        my_reference="Monthly payment",
-        their_reference="Invoice #12345"
-    )
-]
-
-# Execute payment
-result = client.pay_beneficiaries(
-    account_id="source_account_id_here",
-    payments=payments
-)
-
-# Check results
-for response in result.transfer_responses:
-    print(f"Payment reference: {response.payment_reference_number}")
-    print(f"Status: {response.status}")
-```
-
-## Error Handling
-
-```python
-from investec_api import InvestecAPIError, InvestecAuthError, InvestecRequestError, InvestecRateLimitError
-
-try:
-    client.get_accounts()
-except InvestecAuthError as e:
-    print(f"Authentication failed: {e}")
-except InvestecRateLimitError as e:
-    print(f"Rate limit hit: {e}, status code: {e.status_code}")
-except InvestecRequestError as e:
-    print(f"API request failed: {e}, status code: {e.status_code}")
-except InvestecAPIError as e:
-    print(f"General API error: {e}")
-```
-
-## Documentation
-
-For detailed API documentation, see the [Investec Open API documentation](https://developer.investec.com/za/api-products).
+---
 
 ## License
 
-MIT
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
-## Development
+---
 
-### Setup
-
-1. Clone the repository
-2. Install dependencies:
-
-```bash
-uv pip install -r requirements.txt
-```
-
-3. Set up your environment variables (copy `.env.example` to `.env` and fill in your credentials)
-
-### Running Tests
-
-Run the tests using Python's module approach to ensure proper imports:
-
-```bash
-python -m pytest
-```
-
-This will run all tests in the `tests/` directory.
-
-## MCP Server
-
-This project includes an MCP server that provides tools to interact with the Investec API through the Model Context Protocol (MCP).
-
-### MCP Features
-
-The server exposes the following tools:
-
-- `get_accounts`: Get all accounts for the authenticated user
-- `get_account_balance`: Get the balance for a specific account
-- `get_account_transactions`: Get transactions for a specific account
-- `get_pending_transactions`: Get pending transactions for a specific account
-- `get_beneficiaries`: Get all beneficiaries for the authenticated user
-- `get_profiles`: Get all profiles for the authenticated user
-- `get_profile_accounts`: Get all accounts for a specific profile
-
-### Running the MCP Server
-
-To run the server:
-
-```bash
-# First set up your authentication (see above)
-# Then run the server
-uv run server.py
-```
-
-### Integrating with Claude for Desktop
-
-1. Install Claude for Desktop from https://claude.ai/
-2. Configure Claude for Desktop to use this MCP server:
-
-Open the Claude for Desktop configuration file at:
-- MacOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
-- Windows: `%AppData%\Claude\claude_desktop_config.json`
-
-Add the following to the configuration:
-
-```json
-{
-    "mcpServers": {
-        "investec": {
-            "command": "uv",
-            "args": [
-                "--directory",
-                "/ABSOLUTE/PATH/TO/investec-api-mcp",
-                "run",
-                "server.py"
-            ]
-        }
-    }
-}
-```
-
-Replace `/ABSOLUTE/PATH/TO/investec-api-mcp` with the absolute path to this directory.
-
-3. Restart Claude for Desktop
-
-### Example MCP Usage
-
-Once connected to Claude for Desktop, you can use commands like:
-
-- "Show me all my accounts"
-- "What's my current balance on account [account_id]?"
-- "Show me recent transactions for account [account_id]"
-- "Are there any pending transactions on my account [account_id]?"
-- "List all my beneficiaries" 
-- "Show me all my profiles"
-
+This `README.md` should provide everything you need to get started with the `investec-sapb-mcp` project. Let me know if you'd like me to adjust or add anything!
