@@ -83,8 +83,8 @@ def load_config(test_mode: bool = False) -> InvestecConfig:
     """
     # Test default values (used only in test_mode if no real values are provided)
     test_defaults = {
-        "client_id": "***REMOVED***",
-        "client_secret": "***REMOVED***",
+        "client_id": "yAxzQRFX97vOcyQAwluEU6H6ePxMA5eY",
+        "client_secret": "4dY0PjEYqoBrZ99r",
         "api_key": "eUF4elFSRlg5N3ZPY3lRQXdsdUVVNkg2ZVB4TUE1ZVk6YVc1MlpYTjBaV010ZW1FdGNHSXRZV05qYjNWdWRITXRjMkZ1WkdKdmVBPT0=",
         "use_sandbox": True,
     }
