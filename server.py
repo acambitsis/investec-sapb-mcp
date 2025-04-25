@@ -200,6 +200,7 @@ async def get_beneficiaries() -> str:
         for beneficiary in beneficiaries:
             beneficiary_dict = beneficiary.to_dict()
             beneficiary_info.append(f"""
+Beneficiary ID: {beneficiary_dict.get("beneficiary_id", "Unknown")}
 Name: {beneficiary_dict.get("name", "Unknown")}
 Account Number: {beneficiary_dict.get("account_number", "Unknown")}
 Bank: {beneficiary_dict.get("bank_name", "Unknown")}
