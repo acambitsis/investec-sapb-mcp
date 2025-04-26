@@ -206,6 +206,8 @@ Account Number: {beneficiary_dict.get("account_number", "Unknown")}
 Bank: {beneficiary_dict.get("bank_name", "Unknown")}
 Type: {beneficiary_dict.get("beneficiary_type", "Unknown")}
 Status: {beneficiary_dict.get("status", "Unknown")}
+Last Payment Amount: {beneficiary_dict.get("last_payment_amount", "Unknown")}
+Last Payment Date: {beneficiary_dict.get("last_payment_date", "Unknown")}
 """)
 
         return "\n---\n".join(beneficiary_info)
